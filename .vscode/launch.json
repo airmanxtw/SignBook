@@ -13,6 +13,28 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Launch SignBook - help",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-h"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Launch SignBook - version",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-v"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Attach to Process",
       "type": "coreclr",
       "request": "attach"

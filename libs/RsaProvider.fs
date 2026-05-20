@@ -18,6 +18,7 @@ module RsaProvider =
         rsa.ImportRSAPublicKey(publicKey, bytesRead) |> ignore
         let dataBytes = Encoding.UTF8.GetBytes(data)
         rsa.Encrypt(dataBytes, RSAEncryptionPadding.Pkcs1)
+        |> Convert.ToBase64String
 
     // 用私钥解密数据
     let decrypt (privateKey: byte[]) (encryptedData: byte[]) =
