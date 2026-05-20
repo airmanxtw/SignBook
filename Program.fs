@@ -4,6 +4,7 @@ open SignBook.Models
 open SignBook.Funs
 open Argu
 open FSharpPlus
+open Spectre.Console
 
 [<EntryPoint>]
 
@@ -30,10 +31,10 @@ let main args =
         |> Result.bind PlaywrightProvider.start
         |> function
             | Ok g -> 
-                printfn "Operation completed successfully."
+                AnsiConsole.WriteLine "Operation completed successfully."
+                //printfn "Operation completed successfully."
             | Error e ->                 
-                printfn "Error reading encrypted login file: %s" e.Message
-        
+                AnsiConsole.WriteException e                        
     
 
     // let (privateKey, publicKey) = RsaProvider.generateKeyPair ()
