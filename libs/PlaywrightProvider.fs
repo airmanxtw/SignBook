@@ -8,7 +8,7 @@ module PlaywrightProvider =
     open System
     open FSharpPlus
     
-    let start (model:Option<LoginInfo>) =
+    let start (saveLoginInfo : (LoginInfo) -> Result<unit,exn>) (model:Option<LoginInfo>)  =
         Result.protect(fun()->
             let systemTitle = Text ("===簽到系統===", Style(foreground=Color.Green, decoration=Decoration.Bold))
             AnsiConsole.Write systemTitle
@@ -35,8 +35,8 @@ module PlaywrightProvider =
 
             page.Dialog.Add(fun dialog ->     
                     if dialog.Type = "alert" then           
-                        alertMessage <- dialog.Message
-                    dialog.AcceptAsync() |> Async.AwaitTask |> Async.RunSynchronously                
+                        alertMessage <- dialog.Message                    
+                    dialog.AcceptAsync() |> ignore
                 )
 
             match model with
@@ -56,12 +56,20 @@ module PlaywrightProvider =
                 page.FillAsync("#txtUserID", userid) |> Async.AwaitTask |> Async.RunSynchronously
                 page.FillAsync("#txtPasswd", password) |> Async.AwaitTask |> Async.RunSynchronously
                 page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
-                System.Threading.Thread.Sleep 2000        
+                System.Threading.Thread.Sleep 1000        
             )
 
             if not (String.IsNullOrEmpty alertMessage) then
                 AnsiConsole.MarkupLine $"[red]登入失敗: {alertMessage}[/]"            
-            else            
+            else  
+                match model with
+                | None -> 
+                    saveLoginInfo {signUrl = signUrl; userId = userid; passWord = password} 
+                    |> function
+                        | Ok _ -> AnsiConsole.MarkupLine "[green]登入資訊已保存到加密文件[/]"
+                        | Error e -> AnsiConsole.MarkupLine $"[red]保存登入資訊失敗: {e.Message}[/]"  
+                | Some _ -> AnsiConsole.MarkupLine "[green]使用加密文件登入[/]"
+                
                 let preOcrTxt = page.QuerySelectorAsync "#ctl00_ContentPlaceHolder1_Image2"
                                 |> Async.AwaitTask 
                                 |> Async.RunSynchronously
@@ -76,9 +84,13 @@ module PlaywrightProvider =
                                         imgBytes
                                     |> fun imgBytes ->
                                         // 使用 Tesseract OCR 解析圖片
-                                        let ocr = new Engine(@".\", Enums.Language.English, TesseractOCR.Enums.EngineMode.Default)
+                                        use ocr = new Engine(@".\", Enums.Language.English, TesseractOCR.Enums.EngineMode.Default)
                                         ocr.SetVariable("tessedit_char_whitelist", "0123456789") |> ignore
                                         TesseractOCR.Pix.Image.LoadFromMemory imgBytes
+                                        |> fun pix ->
+                                            pix.XRes <- 388
+                                            pix.YRes <- 388
+                                            pix
                                         |> ocr.Process
                                         |> fun p -> p.Text                                  
                 
@@ -102,7 +114,7 @@ module PlaywrightProvider =
                                         let id    = button.GetAttributeAsync "id"    |> Async.AwaitTask |> Async.RunSynchronously
                                         let startTime = getDateTime page $"xpath=//input[@id='{id}']/parent::td/following-sibling::td[1]"
                                         let endTime = getDateTime page $"xpath=//input[@id='{id}']/parent::td/following-sibling::td[2]"
-                                        DateTime.Now >= startTime && DateTime.Now <= endTime                                                                                                                                                                 
+                                        true || DateTime.Now >= startTime && DateTime.Now <= endTime
                                     )
                                     |> Seq.map (fun button ->
                                         let id    = button.GetAttributeAsync "id"    |> Async.AwaitTask |> Async.RunSynchronously
@@ -124,7 +136,7 @@ module PlaywrightProvider =
                         page.FillAsync("#ctl00_ContentPlaceHolder1_txt_authimg", ocrTxt) |> Async.AwaitTask |> Async.RunSynchronously                                      
                         page.ClickAsync $"#{selectBtn.id}" |> Async.AwaitTask |> Async.RunSynchronously                                       
                         page.GotoAsync(signUrl).Result |> ignore
-                        System.Threading.Thread.Sleep 2000                                                
+                        System.Threading.Thread.Sleep 1000                                                
                     )
 
 
@@ -139,11 +151,8 @@ module PlaywrightProvider =
                                 AnsiConsole.MarkupLine "[red]查無訊息,有可能簽到失敗,再試一次[/]"                            
                             else
                                 let text = element.InnerTextAsync() |> Async.AwaitTask |> Async.RunSynchronously
-                                let color = if text.Contains "簽到異常" then "red" else "green"
-                                AnsiConsole.MarkupLine $"[{color}]簽到作業完成，系統訊息: {text}[/]"
-                            
-                    
-
+                                let color = if text.Contains "簽到異常" then "red" else "green"                                
+                                AnsiConsole.MarkupLine $"[{color}]簽到作業完成，系統訊息:{text}[/]"                            
 
                 ()
 

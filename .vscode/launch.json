@@ -35,6 +35,28 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Launch SignBook - check",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-c"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+     {
+      "name": "Launch SignBook - delete",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-d"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Attach to Process",
       "type": "coreclr",
       "request": "attach"
