@@ -35,11 +35,8 @@ let main args =
             AnsiConsole.MarkupLine "[red]Configuration file does not exist.[/]"
     else   
 
-        // 自動偵測 Playwright 驅動，首次使用時自動安裝
-        let playwrightDriver = IO.Path.Combine(AppContext.BaseDirectory, ".playwright")
-        if not (IO.Directory.Exists playwrightDriver) then
-            AnsiConsole.MarkupLine "[yellow]首次使用，正在安裝 Playwright 瀏覽器驅動程式...[/]"
-            Microsoft.Playwright.Program.Main [| "install"; "chromium" |] |> ignore
+        // 確保 Playwright 驅動及瀏覽器已安裝（幂等，已安裝時自動跳過）
+        Microsoft.Playwright.Program.Main [| "install"; "chromium" |] |> ignore
 
         let saveLoginInfo (model:LoginInfo) =  
             RsaProvider.generateKeyPair ()
