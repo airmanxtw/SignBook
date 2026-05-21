@@ -84,7 +84,7 @@ module PlaywrightProvider =
                                         imgBytes
                                     |> fun imgBytes ->
                                         // 使用 Tesseract OCR 解析圖片
-                                        use ocr = new Engine(@".\", Enums.Language.English, TesseractOCR.Enums.EngineMode.Default)
+                                        use ocr = new Engine(AppContext.BaseDirectory, Enums.Language.English, TesseractOCR.Enums.EngineMode.Default)
                                         ocr.SetVariable("tessedit_char_whitelist", "0123456789") |> ignore
                                         TesseractOCR.Pix.Image.LoadFromMemory imgBytes
                                         |> fun pix ->
