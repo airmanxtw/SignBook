@@ -151,7 +151,7 @@ module PlaywrightProvider =
                                 let endTime =
                                     getDateTime page $"xpath=//input[@id='{id}']/parent::td/following-sibling::td[2]"
 
-                                false || DateTime.Now >= startTime && DateTime.Now <= endTime)
+                                true || DateTime.Now >= startTime && DateTime.Now <= endTime)
                             |> Seq.map (fun button ->
                                 let id = button.GetAttributeAsync "id" |> Async.AwaitTask |> Async.RunSynchronously
 
