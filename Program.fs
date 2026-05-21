@@ -34,6 +34,16 @@ let main args =
         else
             AnsiConsole.MarkupLine "[red]Configuration file does not exist.[/]"
     else   
+        // 設定驅動程式路徑（install 和 CreateAsync 都會讀取此環境變數）
+        let playwrightAssemblyDir = 
+            IO.Path.GetDirectoryName(typeof<Microsoft.Playwright.IPlaywright>.Assembly.Location)
+        let platform = 
+            if OperatingSystem.IsWindows() then "win32_x64"
+            elif OperatingSystem.IsMacOS() then "mac"
+            else "linux"
+        let driverExe = if OperatingSystem.IsWindows() then "node.exe" else "node"
+        let driverPath = IO.Path.Combine(playwrightAssemblyDir, ".playwright", "node", platform, driverExe)
+        Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_PATH", driverPath)
 
         // 確保 Playwright 驅動及瀏覽器已安裝（幂等，已安裝時自動跳過）
         Microsoft.Playwright.Program.Main [| "install"; "chromium" |] |> ignore
