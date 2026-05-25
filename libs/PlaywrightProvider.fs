@@ -8,7 +8,7 @@ module PlaywrightProvider =
     open System
     open FSharpPlus
 
-    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (model: Option<LoginInfo>) =
+    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (autoSign:bool) (model: Option<LoginInfo>) =
         Result.protect
             (fun () ->
                 let systemTitle =
@@ -125,7 +125,11 @@ module PlaywrightProvider =
                                 |> fun p -> p.Text
 
                     //AnsiConsole.MarkupLine $"驗證碼: [green]{tx}[/]"
-                    ocrTxt <- AnsiConsole.Prompt(TextPrompt<string>("輸入驗證碼(按下Enter使用辨識值):").DefaultValue preOcrTxt)
+                    if autoSign then
+                        AnsiConsole.MarkupLine $"[yellow]自動簽到模式已啟用，使用辨識值: {preOcrTxt}[/]"
+                        ocrTxt <- preOcrTxt
+                    else
+                        ocrTxt <- AnsiConsole.Prompt(TextPrompt<string>("輸入驗證碼(按下Enter使用辨識值):").DefaultValue preOcrTxt)
 
                     // 取得簽到鈕旁的時間
                     let getDateTime (p: IPage) (selector: string) =
@@ -165,14 +169,18 @@ module PlaywrightProvider =
                         AnsiConsole.MarkupLine "[yellow]沒有可簽到的項目[/]"
                     else
                         let selectBtn =
-                            AnsiConsole.Prompt(
-                                SelectionPrompt<SelectBtn>()
-                                    .Title("選擇要簽到的項目:")
-                                    .PageSize(10)
-                                    .UseConverter(fun btn -> $"{btn.value}")
-                                    .AddChoices
-                                    selectBtns
-                            )
+                            if autoSign then
+                                AnsiConsole.MarkupLine $"[yellow]自動簽到模式已啟用，選擇第一個項目: {selectBtns.Head.value}[/]"
+                                selectBtns |> List.head                                
+                            else
+                                AnsiConsole.Prompt(
+                                    SelectionPrompt<SelectBtn>()
+                                        .Title("選擇要簽到的項目:")
+                                        .PageSize(10)
+                                        .UseConverter(fun btn -> $"{btn.value}")
+                                        .AddChoices
+                                        selectBtns
+                                )
 
                         AnsiConsole
                             .Status()

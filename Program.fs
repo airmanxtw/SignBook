@@ -19,6 +19,7 @@ let main args =
         printfn "  -v, --version  顯示版本資訊"
         printfn "  -d, --delete   移除設定檔"
         printfn "  -c, --check    檢查是否有設定檔"
+        printfn "  -a, --auto     自動執行簽到（從設定檔讀取登入資訊）"
     else if results.Contains Version then
         Reflection.Assembly.GetExecutingAssembly().GetName().Version
             |> fun v -> printfn "SignBook version %d.%d.%d" v.Major v.Minor v.Build        
@@ -53,7 +54,7 @@ let main args =
             |> ToolsProvider.saveEncryFile (IO.Path.Combine(AppContext.BaseDirectory, infoFileName))          
 
         ToolsProvider.readEncryFile (IO.Path.Combine(AppContext.BaseDirectory, infoFileName))
-        |> Result.bind (PlaywrightProvider.start saveLoginInfo)
+        |> Result.bind (PlaywrightProvider.start saveLoginInfo (results.Contains Auto))
         |> function
             | Ok g -> 
                 AnsiConsole.WriteLine "Operation completed successfully."                
