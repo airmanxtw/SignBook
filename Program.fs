@@ -5,10 +5,11 @@ open SignBook.Funs
 open Argu
 open FSharpPlus
 open Spectre.Console
+open  System.Diagnostics;
 
 [<EntryPoint>]
 
-let main args =
+let main args =    
     let infoFileName ="_20260521li.enc"
     let parser = ArgumentParser.Create<CommandLineArguments>(programName = "SignBook.exe")
     let results = parser.Parse args    
@@ -35,6 +36,7 @@ let main args =
         else
             AnsiConsole.MarkupLine "[red]Configuration file does not exist.[/]"
     else   
+        let sw = Stopwatch.StartNew()
         // 設定驅動程式路徑（install 和 CreateAsync 都會讀取此環境變數）
         let playwrightAssemblyDir = AppContext.BaseDirectory
         let platform = 
@@ -59,7 +61,10 @@ let main args =
             | Ok g -> 
                 AnsiConsole.WriteLine "Operation completed successfully."                
             | Error e ->                 
-                AnsiConsole.WriteException e                        
+                AnsiConsole.WriteException e   
+
+        sw.Stop()
+        AnsiConsole.MarkupLine $"[blue]Execution time: {sw.Elapsed.TotalSeconds:F2} seconds[/]"                     
     
 
   
