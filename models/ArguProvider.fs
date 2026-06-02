@@ -7,7 +7,8 @@ type CommandLineArguments =
     | [<AltCommandLine("-a")>] Auto
     | [<AltCommandLine("-v")>] Version
     | [<AltCommandLine("-d")>] Delete
-    | [<AltCommandLine("-c")>] Check    
+    | [<AltCommandLine("-c")>] Check
+    | [<AltCommandLine("-s")>] Sign
 
     interface IArgParserTemplate with
         member s.Usage =
@@ -17,4 +18,5 @@ type CommandLineArguments =
             | Delete -> "移除設定檔"
             | Check  -> "檢查是否有設定檔"
             | Auto -> "自動執行簽到（從設定檔讀取登入資訊）"
+            | Sign -> "輸入登入資訊並儲存到設定檔"
            

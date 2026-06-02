@@ -67,6 +67,17 @@
       "stopAtEntry": false,
       "console": "integratedTerminal"
     },
+     {
+      "name": "Launch SignBook - sign",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-s"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
     {
       "name": "Attach to Process",
       "type": "coreclr",

@@ -1,4 +1,4 @@
-namespace SignBook.Funs
+namespace SignBook.Libs
 
 module PlaywrightProvider =
     open Microsoft.Playwright
@@ -7,8 +7,9 @@ module PlaywrightProvider =
     open TesseractOCR
     open System
     open FSharpPlus
+    
 
-    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (autoSign:bool) (model: Option<LoginInfo>) =
+    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (model: Option<LoginInfo>) =
         Result.protect
             (fun () ->
                 let systemTitle =
@@ -53,9 +54,14 @@ module PlaywrightProvider =
                     userid <- v.userId
                     password <- v.passWord
                 | None ->
-                    signUrl <- AnsiConsole.Ask<string> "輸入簽到網址:"
-                    userid <- AnsiConsole.Ask<string> "輸入登入帳號:"
-                    password <- AnsiConsole.Prompt(TextPrompt<string>("輸入登入密碼:").Secret())
+                    inputInfo() |> fun (url, id, pw) ->
+                        signUrl <- url
+                        userid <- id
+                        password <- pw
+                    
+                    // signUrl <- AnsiConsole.Ask<string> "輸入簽到網址:"
+                    // userid <- AnsiConsole.Ask<string> "輸入登入帳號:"
+                    // password <- AnsiConsole.Prompt(TextPrompt<string>("輸入登入密碼:").Secret())
 
 
 
