@@ -58,11 +58,6 @@ module PlaywrightProvider =
                         signUrl <- url
                         userid <- id
                         password <- pw
-                    
-                    // signUrl <- AnsiConsole.Ask<string> "輸入簽到網址:"
-                    // userid <- AnsiConsole.Ask<string> "輸入登入帳號:"
-                    // password <- AnsiConsole.Prompt(TextPrompt<string>("輸入登入密碼:").Secret())
-
 
 
                 AnsiConsole
