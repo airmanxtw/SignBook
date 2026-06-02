@@ -9,6 +9,52 @@ module PlaywrightProvider =
     open FSharpPlus
     
 
+    // 啟動一個 Playwright 瀏覽器實例並返回一個新的頁面
+    let getPlaywrightPage() =
+        let playwright=  Playwright.CreateAsync().Result
+        let launchOptions = BrowserTypeLaunchOptions()
+        launchOptions.Channel <- "chrome"
+        let browser = playwright.Chromium.LaunchAsync(launchOptions).Result
+        browser.NewPageAsync().Result
+
+    // 登入
+    let toLoginByPage (page:IPage) (model:LoginInfo) =
+        let signUrl, userid, password = model.signUrl, model.userId, model.passWord
+        page.GotoAsync(signUrl).Result |> ignore
+        page.FillAsync("#txtUserID", userid)
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
+        page.FillAsync("#txtPasswd", password)
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
+        page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
+        System.Threading.Thread.Sleep 1000
+
+    let showMonthRecord' (page:IPage) (year:int,month:int)=
+        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
+        System.Threading.Thread.Sleep 1000
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
+        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
+        System.Threading.Thread.Sleep 1000
+        let table = Table()
+        let rows = page.Locator("center > table").Nth(1).Locator "tr"
+        for i in 0 .. rows.CountAsync().Result-1 do
+            if i = 0 then
+                let cells = rows.Nth(i).Locator "td"
+                let c = cells.CountAsync().Result
+                for j in 0 .. cells.CountAsync().Result-1 do
+                    let text = cells.Nth(j).InnerTextAsync().Result
+                    table.AddColumn(text) |> ignore                            
+            else
+                let cells = rows.Nth(i).Locator "td"
+                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield cells.Nth(j).InnerTextAsync().Result }                        
+                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
+
+        AnsiConsole.Write table          
+
     let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (model: Option<LoginInfo>) =
         Result.protect
             (fun () ->
@@ -18,8 +64,7 @@ module PlaywrightProvider =
                 AnsiConsole.Write systemTitle
                 AnsiConsole.WriteLine()
 
-                let mutable alertMessage = ""
-                let mutable playwright = null
+                let mutable alertMessage = ""                
                 let mutable page = null
                 let mutable signUrl = ""
                 let mutable userid = ""
@@ -31,15 +76,8 @@ module PlaywrightProvider =
                     .Start(
                         "正在載入...",
                         fun ctx ->
-                            playwright <- Playwright.CreateAsync().Result
-                            let launchOptions = BrowserTypeLaunchOptions()
-                            launchOptions.Channel <- "chrome"
-                            let browser = playwright.Chromium.LaunchAsync(launchOptions).Result
-                            page <- browser.NewPageAsync().Result
-                            //let screenOptions = PageScreenshotOptions()
-                            // screenOptions.Path <- "screenshot.png"
-                            // page.ScreenshotAsync(screenOptions).Result
-                            ()
+                            page <- getPlaywrightPage()
+                            ()                          
                     )
 
                 page.Dialog.Add(fun dialog ->
@@ -65,18 +103,7 @@ module PlaywrightProvider =
                     .Start(
                         "登入中...",
                         fun ctx ->
-                            page.GotoAsync(signUrl).Result |> ignore
-
-                            page.FillAsync("#txtUserID", userid)
-                            |> Async.AwaitTask
-                            |> Async.RunSynchronously
-
-                            page.FillAsync("#txtPasswd", password)
-                            |> Async.AwaitTask
-                            |> Async.RunSynchronously
-
-                            page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
-                            System.Threading.Thread.Sleep 1000
+                            do toLoginByPage page { signUrl = signUrl; userId = userid; passWord = password }
                     )
 
                 if not (String.IsNullOrEmpty alertMessage) then
@@ -217,3 +244,53 @@ module PlaywrightProvider =
 
                 ())
             ()
+
+
+
+    let showMonthRecord (model: LoginInfo) (year:int,month:int)=
+        Result.protect(fun() -> 
+            let systemTitle =
+                    Text("===月份簽到記錄===", Style(foreground = Color.Green, decoration = Decoration.Bold))
+
+            AnsiConsole.Write systemTitle
+            AnsiConsole.WriteLine()
+            let mutable page = null
+            let mutable alertMessage = ""        
+            AnsiConsole.Status().Start(
+                        "正在載入...",
+                        fun ctx ->
+                            page <- getPlaywrightPage()
+                            ()                          
+                    )
+
+            page.Dialog.Add(fun dialog ->
+                if dialog.Type = "alert" then
+                    alertMessage <- dialog.Message
+
+                dialog.AcceptAsync() |> ignore)
+
+            let signUrl, userid, password = model.signUrl, model.userId, model.passWord
+
+            AnsiConsole.Status().Start(
+                        "登入中...",
+                        fun ctx ->
+                            do toLoginByPage page { signUrl = signUrl; userId = userid; passWord = password }
+                    )
+
+            if not (String.IsNullOrEmpty alertMessage) then
+                    AnsiConsole.MarkupLine $"[red]登入失敗: {alertMessage}[/]"
+            else
+                do showMonthRecord' page (year,month)               
+
+                //以下拍個畫面存檔為 signbook.jpg
+                // let screenOptions = PageScreenshotOptions()
+                // screenOptions.Path <- "signbook.jpg"
+                // page.ScreenshotAsync(screenOptions).Result |> ignore
+                // AnsiConsole.MarkupLine "[red]拍照完成[/]"
+                ()
+
+            
+        )()
+           
+        
+        

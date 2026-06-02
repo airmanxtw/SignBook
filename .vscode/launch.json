@@ -67,13 +67,24 @@
       "stopAtEntry": false,
       "console": "integratedTerminal"
     },
-     {
+    {
       "name": "Launch SignBook - sign",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
       "args": ["-s"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Launch SignBook - record",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["record","-d","2026","6"],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "console": "integratedTerminal"
