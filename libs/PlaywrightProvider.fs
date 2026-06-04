@@ -33,32 +33,40 @@ module PlaywrightProvider =
         System.Threading.Thread.Sleep 1000
 
     let showMonthRecord' (page:IPage) (year:int,month:int)=
-        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
-        System.Threading.Thread.Sleep 1000
-        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
-        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
-        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
-        System.Threading.Thread.Sleep 1000
-        let table = Table()
-        let rows = page.Locator("center > table").Nth(1).Locator "tr"
-        for i in 0 .. rows.CountAsync().Result-1 do
-            if i = 0 then
-                let cells = rows.Nth(i).Locator "td"
-                let c = cells.CountAsync().Result
-                for j in 0 .. cells.CountAsync().Result-1 do
-                    let text = cells.Nth(j).InnerTextAsync().Result
-                    table.AddColumn(text) |> ignore                            
-            else
-                let cells = rows.Nth(i).Locator "td"    
+        AnsiConsole
+                    .Status()
+                    .Start(
+                        "正在產生月份簽到記錄...",
+                        fun ctx ->
+                        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
+                        System.Threading.Thread.Sleep 1000
+                        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
+                        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
+                        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
+                        System.Threading.Thread.Sleep 1000
+                        let table = Table()
+                        let rows = page.Locator("center > table").Nth(1).Locator "tr"
+                        for i in 0 .. rows.CountAsync().Result-1 do
+                            if i = 0 then
+                                let cells = rows.Nth(i).Locator "td"
+                                let c = cells.CountAsync().Result
+                                for j in 0 .. cells.CountAsync().Result-1 do
+                                    let text = cells.Nth(j).InnerTextAsync().Result
+                                    table.AddColumn(text) |> ignore                            
+                            else
+                                let cells = rows.Nth(i).Locator "td"    
 
-                let getCell index = 
-                    cells.Nth index
-                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
+                                let getCell index = 
+                                    cells.Nth index
+                                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
 
-                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
-                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
+                                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
+                                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
 
-        AnsiConsole.Write table          
+                        AnsiConsole.Write table                       
+                                                 
+                    )
+
 
     let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (showRecord:bool) (model: Option<LoginInfo>) =
         Result.protect

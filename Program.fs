@@ -76,7 +76,7 @@ let main args =
     else if results.Contains Record then
         let getMonthArgs = results.GetResult Record
         getMonthArgs.GetResults YearAndMonth
-        |> List.head
+        |> List.head              
         |> fun (year,month) -> 
               ToolsProvider.readEncryFile infoFileName
                 |> function
