@@ -49,8 +49,13 @@ module PlaywrightProvider =
                     let text = cells.Nth(j).InnerTextAsync().Result
                     table.AddColumn(text) |> ignore                            
             else
-                let cells = rows.Nth(i).Locator "td"
-                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield cells.Nth(j).InnerTextAsync().Result }                        
+                let cells = rows.Nth(i).Locator "td"    
+
+                let getCell index = 
+                    cells.Nth index
+                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
+
+                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
                 table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
 
         AnsiConsole.Write table          
