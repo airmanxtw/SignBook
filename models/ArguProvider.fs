@@ -12,6 +12,7 @@ type YearAndMonthArgs =
 and CommandLineArguments =   
     | [<CustomCommandLine("help"); AltCommandLine("-h")>] Help
     | [<AltCommandLine("-a")>] Auto
+    | [<AltCommandLine("-r")>] ShowRecord
     | [<AltCommandLine("-v")>] Version
     | [<AltCommandLine("-d")>] Delete
     | [<AltCommandLine("-c")>] Check
@@ -21,11 +22,12 @@ and CommandLineArguments =
     interface IArgParserTemplate with
         member s.Usage =
             match s with   
-            | Help -> "顯示幫助訊息"         
+            | Help -> "顯示幫助訊息"                     
             | Version -> "顯示版本資訊"
             | Delete -> "移除設定檔"
             | Check  -> "檢查是否有設定檔"
             | Auto -> "自動執行簽到（從設定檔讀取登入資訊）"
+            | ShowRecord -> "自動執行簽到且顯示簽到記錄"
             | Sign -> "輸入登入資訊並儲存到設定檔"
             | Record _ -> "顯示月份簽到記錄"
            

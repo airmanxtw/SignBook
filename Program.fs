@@ -41,6 +41,7 @@ let main args =
         printfn "  -d, --delete   移除設定檔"
         printfn "  -c, --check    檢查是否有設定檔"
         printfn "  -a, --auto     自動執行簽到（從設定檔讀取登入資訊）"
+        printfn "  -r, --showrecord 顯示當月份簽到記錄"
         printfn "  -s, --sign     輸入登入資訊並儲存到設定檔"
         printfn "Usage: SignBook.exe record [options]"
         printfn "Options for record:"
@@ -93,9 +94,9 @@ let main args =
         let sw = Stopwatch.StartNew()
         // 設定驅動程式路徑（install 和 CreateAsync 都會讀取此環境變數）
         do setPlaywrightEnvir()
-
+        
         ToolsProvider.readEncryFile infoFileName
-        |> Result.bind (PlaywrightProvider.start  (saveLoginInfo infoFileName) IOProvider.inputInfo (results.Contains Auto))
+        |> Result.bind (PlaywrightProvider.start  (saveLoginInfo infoFileName) IOProvider.inputInfo (results.Contains Auto) (results.Contains ShowRecord))
         |> function
             | Ok g -> 
                 AnsiConsole.WriteLine "Operation completed successfully."                
@@ -103,7 +104,9 @@ let main args =
                 AnsiConsole.WriteException e   
 
         sw.Stop()
-        AnsiConsole.MarkupLine $"[blue]Execution time: {sw.Elapsed.TotalSeconds:F2} seconds[/]"                     
+        AnsiConsole.MarkupLine $"[blue]Execution time: {sw.Elapsed.TotalSeconds:F2} seconds[/]"  
+
+                           
     
 
   

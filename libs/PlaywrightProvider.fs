@@ -55,7 +55,7 @@ module PlaywrightProvider =
 
         AnsiConsole.Write table          
 
-    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (model: Option<LoginInfo>) =
+    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (showRecord:bool) (model: Option<LoginInfo>) =
         Result.protect
             (fun () ->
                 let systemTitle =
@@ -239,6 +239,9 @@ module PlaywrightProvider =
                                     let text = element.InnerTextAsync() |> Async.AwaitTask |> Async.RunSynchronously
                                     let color = if text.Contains "簽到異常" then "red" else "green"
                                     AnsiConsole.MarkupLine $"[{color}]簽到作業完成，系統訊息:{text}[/]"
+                        
+                        if showRecord then
+                            do showMonthRecord' page (DateTime.Now.Year,DateTime.Now.Month)
 
                     ()
 
