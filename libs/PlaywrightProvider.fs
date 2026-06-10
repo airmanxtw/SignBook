@@ -71,8 +71,10 @@ module PlaywrightProvider =
     let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (showRecord:bool) (model: Option<LoginInfo>) =
         Result.protect
             (fun () ->
+                let title = "  ____  _             _                 _    \n / ___|(_) __ _ _ __ | |__   ___   ___ | | __\n \___ \| |/ _` | '_ \| '_ \ / _ \ / _ \| |/ /\n  ___) | | (_| | | | | |_) | (_) | (_) |   < \n |____/|_|\__, |_| |_|_.__/ \___/ \___/|_|\_\ \n          |___/                              \n"
+
                 let systemTitle =
-                    Text("===簽到系統===", Style(foreground = Color.Green, decoration = Decoration.Bold))
+                    Text(title, Style(foreground = Color.Green, decoration = Decoration.Bold))
 
                 AnsiConsole.Write systemTitle
                 AnsiConsole.WriteLine()
@@ -86,8 +88,9 @@ module PlaywrightProvider =
 
                 AnsiConsole
                     .Status()
+                    .Spinner(Spinner.Known.Binary)
                     .Start(
-                        "正在載入...",
+                        "正在啟動中...",
                         fun ctx ->
                             page <- getPlaywrightPage()
                             ()                          
@@ -113,8 +116,9 @@ module PlaywrightProvider =
 
                 AnsiConsole
                     .Status()
+                    .Spinner(Spinner.Known.Binary)
                     .Start(
-                        "登入中...",
+                        "嘗試登入中...",
                         fun ctx ->
                             do toLoginByPage page { signUrl = signUrl; userId = userid; passWord = password }
                     )
@@ -226,7 +230,7 @@ module PlaywrightProvider =
                         AnsiConsole
                             .Status()
                             .Start(
-                                "簽到中...",
+                                "正在簽到中...",
                                 fun ctx ->
                                     page.FillAsync("#ctl00_ContentPlaceHolder1_txt_authimg", ocrTxt)
                                     |> Async.AwaitTask
@@ -255,6 +259,7 @@ module PlaywrightProvider =
                         
                         if showRecord then
                             do showMonthRecord' page (DateTime.Now.Year,DateTime.Now.Month)
+                            
 
                     ()
 

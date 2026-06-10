@@ -93,8 +93,8 @@ let main args =
     else          
         let sw = Stopwatch.StartNew()
         // 設定驅動程式路徑（install 和 CreateAsync 都會讀取此環境變數）
-        do setPlaywrightEnvir()
-        
+        AnsiConsole.Status().Start("正在載入及準備環境中...",fun ctx -> do setPlaywrightEnvir())
+               
         ToolsProvider.readEncryFile infoFileName
         |> Result.bind (PlaywrightProvider.start  (saveLoginInfo infoFileName) IOProvider.inputInfo (results.Contains Auto) (results.Contains ShowRecord))
         |> function
