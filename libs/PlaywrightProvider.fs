@@ -33,33 +33,57 @@ module PlaywrightProvider =
         page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
         System.Threading.Thread.Sleep 1000
 
-    let showMonthRecord' (page:IPage) (year:int,month:int)=
-        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
+    let showMonthRecord' (page: IPage) (year: int, month: int) =
+        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync()
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
         System.Threading.Thread.Sleep 1000
-        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
-        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
-        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
+
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result
+        |> ignore
+
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result
+        |> ignore
+
+        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel"
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
         System.Threading.Thread.Sleep 1000
         let table = Table()
         let rows = page.Locator("center > table").Nth(1).Locator "tr"
-        for i in 0 .. rows.CountAsync().Result-1 do
+
+        for i in 0 .. rows.CountAsync().Result - 1 do
             if i = 0 then
                 let cells = rows.Nth(i).Locator "td"
                 let c = cells.CountAsync().Result
-                for j in 0 .. cells.CountAsync().Result-1 do
+
+                for j in 0 .. cells.CountAsync().Result - 1 do
                     let text = cells.Nth(j).InnerTextAsync().Result
-                    table.AddColumn(text) |> ignore                            
+                    table.AddColumn(text) |> ignore
             else
-                let cells = rows.Nth(i).Locator "td"    
+                let cells = rows.Nth(i).Locator "td"
 
-                let getCell index = 
+                let getCell index =
                     cells.Nth index
-                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
+                    |> fun cell ->
+                        if
+                            cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0"
+                        then
+                            $"[black on red]{cell.InnerTextAsync().Result}[/]"
+                        else
+                            cell.InnerTextAsync().Result
 
-                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
-                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
+                let cellSeq =
+                    seq {
+                        for j in 0 .. cells.CountAsync().Result - 1 do
+                            yield getCell j
+                    }
 
-        AnsiConsole.Write table          
+                table.AddRow(cellSeq |> Seq.toArray) |> ignore
+
+        AnsiConsole.Write table
 
     let start
         (saveLoginInfo: (LoginInfo) -> Result<unit, exn>)
@@ -70,12 +94,11 @@ module PlaywrightProvider =
         =
         Result.protect
             (fun () ->
-                let title = "  ____  _             _                 _    \n / ___|(_) __ _ _ __ | |__   ___   ___ | | __\n \___ \| |/ _` | '_ \| '_ \ / _ \ / _ \| |/ /\n  ___) | | (_| | | | | |_) | (_) | (_) |   < \n |____/|_|\__, |_| |_|_.__/ \___/ \___/|_|\_\ \n          |___/                              \n"
 
-                let systemTitle =
-                    Text(title, Style(foreground = Color.Green, decoration = Decoration.Bold))
+                let figletTitle = new FigletText "SignBook"
+                figletTitle.Color <- Color.Green
 
-                AnsiConsole.Write systemTitle
+                AnsiConsole.Write figletTitle
                 AnsiConsole.WriteLine()
 
                 let mutable alertMessage = ""
@@ -236,7 +259,7 @@ module PlaywrightProvider =
 
                         let selectBtn =
                             if canAutoSign then
-                                AnsiConsole.MarkupLine $"[yellow]自動簽到模式已啟用，選擇第一個項目: {selectBtns.Head.value}[/]"
+                                AnsiConsole.MarkupLine $"[yellow]自動簽到模式已啟用，選擇第一個項目: {firstBtn.value}[/]"
                                 firstBtn
                             else
                                 AnsiConsole.Prompt(
@@ -279,7 +302,7 @@ module PlaywrightProvider =
                                     AnsiConsole.MarkupLine $"[{color}]簽到作業完成，系統訊息:{text}[/]"
 
                         if showRecord then
-                            do showMonthRecord' page (DateTime.Now.Year,DateTime.Now.Month)
+                            do showMonthRecord' page (DateTime.Now.Year, DateTime.Now.Month)
 
                     ()
 
