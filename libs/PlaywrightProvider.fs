@@ -7,20 +7,21 @@ module PlaywrightProvider =
     open TesseractOCR
     open System
     open FSharpPlus
-    
+
 
     // 啟動一個 Playwright 瀏覽器實例並返回一個新的頁面
-    let getPlaywrightPage() =
-        let playwright=  Playwright.CreateAsync().Result
+    let getPlaywrightPage () =
+        let playwright = Playwright.CreateAsync().Result
         let launchOptions = BrowserTypeLaunchOptions()
         launchOptions.Channel <- "chrome"
         let browser = playwright.Chromium.LaunchAsync(launchOptions).Result
         browser.NewPageAsync().Result
 
     // 登入
-    let toLoginByPage (page:IPage) (model:LoginInfo) =
+    let toLoginByPage (page: IPage) (model: LoginInfo) =
         let signUrl, userid, password = model.signUrl, model.userId, model.passWord
         page.GotoAsync(signUrl).Result |> ignore
+
         page.FillAsync("#txtUserID", userid)
         |> Async.AwaitTask
         |> Async.RunSynchronously
@@ -33,42 +34,40 @@ module PlaywrightProvider =
         System.Threading.Thread.Sleep 1000
 
     let showMonthRecord' (page:IPage) (year:int,month:int)=
-        AnsiConsole
-                    .Status()
-                    .Start(
-                        "正在產生月份簽到記錄...",
-                        fun ctx ->
-                        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
-                        System.Threading.Thread.Sleep 1000
-                        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
-                        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
-                        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
-                        System.Threading.Thread.Sleep 1000
-                        let table = Table()
-                        let rows = page.Locator("center > table").Nth(1).Locator "tr"
-                        for i in 0 .. rows.CountAsync().Result-1 do
-                            if i = 0 then
-                                let cells = rows.Nth(i).Locator "td"
-                                let c = cells.CountAsync().Result
-                                for j in 0 .. cells.CountAsync().Result-1 do
-                                    let text = cells.Nth(j).InnerTextAsync().Result
-                                    table.AddColumn(text) |> ignore                            
-                            else
-                                let cells = rows.Nth(i).Locator "td"    
+        page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync() |> Async.AwaitTask |> Async.RunSynchronously
+        System.Threading.Thread.Sleep 1000
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result |> ignore
+        page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_mon", month.ToString()).Result |> ignore
+        page.ClickAsync "#ctl00_ContentPlaceHolder1_ibtn_sel" |> Async.AwaitTask |> Async.RunSynchronously
+        System.Threading.Thread.Sleep 1000
+        let table = Table()
+        let rows = page.Locator("center > table").Nth(1).Locator "tr"
+        for i in 0 .. rows.CountAsync().Result-1 do
+            if i = 0 then
+                let cells = rows.Nth(i).Locator "td"
+                let c = cells.CountAsync().Result
+                for j in 0 .. cells.CountAsync().Result-1 do
+                    let text = cells.Nth(j).InnerTextAsync().Result
+                    table.AddColumn(text) |> ignore                            
+            else
+                let cells = rows.Nth(i).Locator "td"    
 
-                                let getCell index = 
-                                    cells.Nth index
-                                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
+                let getCell index = 
+                    cells.Nth index
+                    |> fun cell -> if cell.GetAttributeAsync "bgcolor" |> Async.AwaitTask |> Async.RunSynchronously = "#FFC0C0" then $"[black on red]{cell.InnerTextAsync().Result}[/]" else cell.InnerTextAsync().Result
 
-                                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
-                                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
+                let cellSeq = seq { for j in 0 .. cells.CountAsync().Result-1 do yield getCell j }                        
+                table.AddRow(cellSeq |> Seq.toArray) |> ignore                      
 
-                        AnsiConsole.Write table                       
-                                                 
-                    )
+        AnsiConsole.Write table          
 
-
-    let start (saveLoginInfo: (LoginInfo) -> Result<unit, exn>) (inputInfo:unit->string*string*string) (autoSign:bool) (showRecord:bool) (model: Option<LoginInfo>) =
+    let start
+        (saveLoginInfo: (LoginInfo) -> Result<unit, exn>)
+        (inputInfo: unit -> string * string * string)
+        (autoSign: bool)
+        (showRecord: bool)
+        (model: Option<LoginInfo>)
+        =
         Result.protect
             (fun () ->
                 let title = "  ____  _             _                 _    \n / ___|(_) __ _ _ __ | |__   ___   ___ | | __\n \___ \| |/ _` | '_ \| '_ \ / _ \ / _ \| |/ /\n  ___) | | (_| | | | | |_) | (_) | (_) |   < \n |____/|_|\__, |_| |_|_.__/ \___/ \___/|_|\_\ \n          |___/                              \n"
@@ -79,7 +78,7 @@ module PlaywrightProvider =
                 AnsiConsole.Write systemTitle
                 AnsiConsole.WriteLine()
 
-                let mutable alertMessage = ""                
+                let mutable alertMessage = ""
                 let mutable page = null
                 let mutable signUrl = ""
                 let mutable userid = ""
@@ -92,8 +91,8 @@ module PlaywrightProvider =
                     .Start(
                         "正在啟動中...",
                         fun ctx ->
-                            page <- getPlaywrightPage()
-                            ()                          
+                            page <- getPlaywrightPage ()
+                            ()
                     )
 
                 page.Dialog.Add(fun dialog ->
@@ -108,7 +107,8 @@ module PlaywrightProvider =
                     userid <- v.userId
                     password <- v.passWord
                 | None ->
-                    inputInfo() |> fun (url, id, pw) ->
+                    inputInfo ()
+                    |> fun (url, id, pw) ->
                         signUrl <- url
                         userid <- id
                         password <- pw
@@ -120,7 +120,12 @@ module PlaywrightProvider =
                     .Start(
                         "嘗試登入中...",
                         fun ctx ->
-                            do toLoginByPage page { signUrl = signUrl; userId = userid; passWord = password }
+                            do
+                                toLoginByPage
+                                    page
+                                    { signUrl = signUrl
+                                      userId = userid
+                                      passWord = password }
                     )
 
                 if not (String.IsNullOrEmpty alertMessage) then
@@ -207,16 +212,32 @@ module PlaywrightProvider =
                                 let value =
                                     button.GetAttributeAsync "value" |> Async.AwaitTask |> Async.RunSynchronously
 
-                                { id = id; value = value })
+                                let startTime =
+                                    getDateTime page $"xpath=//input[@id='{id}']/parent::td/following-sibling::td[1]"
+
+                                let endTime =
+                                    getDateTime page $"xpath=//input[@id='{id}']/parent::td/following-sibling::td[2]"
+
+                                { id = id
+                                  value = value
+                                  startTime = startTime
+                                  endTime = endTime })
                             |> Seq.toList
 
                     if selectBtns.Length = 0 then
                         AnsiConsole.MarkupLine "[yellow]沒有可簽到的項目[/]"
                     else
+                        let firstBtn = selectBtns.Head
+
+                        let canAutoSign =
+                            autoSign
+                            && firstBtn.startTime <= DateTime.Now
+                            && firstBtn.endTime >= DateTime.Now
+
                         let selectBtn =
-                            if autoSign then
+                            if canAutoSign then
                                 AnsiConsole.MarkupLine $"[yellow]自動簽到模式已啟用，選擇第一個項目: {selectBtns.Head.value}[/]"
-                                selectBtns |> List.head                                
+                                firstBtn
                             else
                                 AnsiConsole.Prompt(
                                     SelectionPrompt<SelectBtn>()
@@ -256,10 +277,9 @@ module PlaywrightProvider =
                                     let text = element.InnerTextAsync() |> Async.AwaitTask |> Async.RunSynchronously
                                     let color = if text.Contains "簽到異常" then "red" else "green"
                                     AnsiConsole.MarkupLine $"[{color}]簽到作業完成，系統訊息:{text}[/]"
-                        
+
                         if showRecord then
                             do showMonthRecord' page (DateTime.Now.Year,DateTime.Now.Month)
-                            
 
                     ()
 
@@ -268,50 +288,59 @@ module PlaywrightProvider =
 
 
 
-    let showMonthRecord (model: LoginInfo) (year:int,month:int)=
-        Result.protect(fun() -> 
-            let systemTitle =
+    let showMonthRecord (model: LoginInfo) (year: int, month: int) =
+        Result.protect
+            (fun () ->
+                let systemTitle =
                     Text("===月份簽到記錄===", Style(foreground = Color.Green, decoration = Decoration.Bold))
 
-            AnsiConsole.Write systemTitle
-            AnsiConsole.WriteLine()
-            let mutable page = null
-            let mutable alertMessage = ""        
-            AnsiConsole.Status().Start(
+                AnsiConsole.Write systemTitle
+                AnsiConsole.WriteLine()
+                let mutable page = null
+                let mutable alertMessage = ""
+
+                AnsiConsole
+                    .Status()
+                    .Start(
                         "正在載入...",
                         fun ctx ->
-                            page <- getPlaywrightPage()
-                            ()                          
+                            page <- getPlaywrightPage ()
+                            ()
                     )
 
-            page.Dialog.Add(fun dialog ->
-                if dialog.Type = "alert" then
-                    alertMessage <- dialog.Message
+                page.Dialog.Add(fun dialog ->
+                    if dialog.Type = "alert" then
+                        alertMessage <- dialog.Message
 
-                dialog.AcceptAsync() |> ignore)
+                    dialog.AcceptAsync() |> ignore)
 
-            let signUrl, userid, password = model.signUrl, model.userId, model.passWord
+                let signUrl, userid, password = model.signUrl, model.userId, model.passWord
 
-            AnsiConsole.Status().Start(
+                AnsiConsole
+                    .Status()
+                    .Start(
                         "登入中...",
                         fun ctx ->
-                            do toLoginByPage page { signUrl = signUrl; userId = userid; passWord = password }
+                            do
+                                toLoginByPage
+                                    page
+                                    { signUrl = signUrl
+                                      userId = userid
+                                      passWord = password }
                     )
 
-            if not (String.IsNullOrEmpty alertMessage) then
+                if not (String.IsNullOrEmpty alertMessage) then
                     AnsiConsole.MarkupLine $"[red]登入失敗: {alertMessage}[/]"
-            else
-                do showMonthRecord' page (year,month)               
+                else
+                    do showMonthRecord' page (year, month)
 
-                //以下拍個畫面存檔為 signbook.jpg
-                // let screenOptions = PageScreenshotOptions()
-                // screenOptions.Path <- "signbook.jpg"
-                // page.ScreenshotAsync(screenOptions).Result |> ignore
-                // AnsiConsole.MarkupLine "[red]拍照完成[/]"
-                ()
+                    //以下拍個畫面存檔為 signbook.jpg
+                    // let screenOptions = PageScreenshotOptions()
+                    // screenOptions.Path <- "signbook.jpg"
+                    // page.ScreenshotAsync(screenOptions).Result |> ignore
+                    // AnsiConsole.MarkupLine "[red]拍照完成[/]"
+                    ()
 
-            
-        )()
-           
-        
-        
+
+            )
+            ()

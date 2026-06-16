@@ -1,8 +1,9 @@
 namespace SignBook.Models
 
-type SelectBtn = {
-    id:string
-    value:string
-}
+open System
 
-
+type SelectBtn =
+    { id: string
+      value: string
+      startTime: DateTime
+      endTime: DateTime }
