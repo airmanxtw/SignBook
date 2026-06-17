@@ -71,6 +71,7 @@ let main args =
         printfn "Options:"
         printfn "  -h, --help     顯示幫助訊息"
         printfn "  -v, --version  顯示版本資訊"
+        printfn "  -u, --upgrade  檢查是否有新版本"
         printfn "  -d, --delete   移除設定檔"
         printfn "  -c, --check    檢查是否有設定檔"
         printfn "  -a, --auto     自動執行簽到（從設定檔讀取登入資訊）"
@@ -117,21 +118,6 @@ let main args =
         let getMonthArgs = results.GetResult Record
 
         getMonthArgs.GetResults YearAndMonth
-<<<<<<< HEAD
-        |> List.head              
-        |> fun (year,month) -> 
-              ToolsProvider.readEncryFile infoFileName
-                |> function
-                    | Ok (Some model) -> 
-                        PlaywrightProvider.showMonthRecord model (year,month)
-                        |> function
-                            | Ok _ -> AnsiConsole.MarkupLine "[green]月份簽到記錄顯示完成[/]"
-                            | Error e -> AnsiConsole.MarkupLine $"[red]顯示月份簽到記錄失敗: {e.Message}[/]"
-                    | Ok None -> AnsiConsole.MarkupLine "[yellow]No configuration file found. Please sign in first.[/]"
-                    | Error e -> AnsiConsole.WriteException e                 
-        ()
-       
-=======
         |> List.head
         |> fun (year, month) ->
             ToolsProvider.readEncryFile infoFileName
@@ -143,7 +129,6 @@ let main args =
                         | Error e -> AnsiConsole.MarkupLine $"[red]顯示月份簽到記錄失敗: {e.Message}[/]"
                 | Ok None -> AnsiConsole.MarkupLine "[yellow]No configuration file found. Please sign in first.[/]"
                 | Error e -> AnsiConsole.WriteException e
->>>>>>> origin/20260519
 
         ()
 
@@ -151,13 +136,8 @@ let main args =
     else
         let sw = Stopwatch.StartNew()
         // 設定驅動程式路徑（install 和 CreateAsync 都會讀取此環境變數）
-<<<<<<< HEAD
-        AnsiConsole.Status().Start("正在載入及準備環境中...",fun ctx -> do setPlaywrightEnvir())
-               
-=======
         do setPlaywrightEnvir ()
 
->>>>>>> origin/20260519
         ToolsProvider.readEncryFile infoFileName
         |> Result.bind (
             PlaywrightProvider.start
