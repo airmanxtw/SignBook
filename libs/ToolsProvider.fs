@@ -7,6 +7,8 @@ module ToolsProvider =
     open System.Text
     open SignBook.Models
     open FSharpPlus
+    open FSharp.Data
+    open SignBook.models
 
     let infoFileName ="_20260521li.enc"
 
@@ -78,6 +80,35 @@ module ToolsProvider =
                 File.Delete file
         ) ()
 
+    let getNugetVersion nugetVersionUrl=
+        Result.protect(fun () ->
+            Http.RequestString nugetVersionUrl
+            |> JsonValue.Parse
+            |> fun json -> json["versions"].AsArray() |> Array.map (fun v -> v.AsString()) |> List.ofArray
+            |> List.tryLast                
+        )()
+
+    let getNugetVersionUrl file =
+        Result.protect(fun () ->
+            File.ReadAllText file
+            |> JsonValue.Parse
+            |> fun json -> json["nugetVersionUrl"].AsString()
+        )()
+
+    let getNugetVersion' file =
+        getNugetVersionUrl file
+        |> Result.bind (fun url -> getNugetVersion url)
+        
+        
+        
+        
+        
+        
+        
+        
+        // let res = "https://api.nuget.org/v3-flatcontainer/signbook/index.json"
+        // type NugetVersion = JsonProvider<"https://api.nuget.org/v3-flatcontainer/signbook/index.json">
+        // res
 
     
         

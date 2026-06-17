@@ -46,6 +46,17 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Launch SignBook - upgrade",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/SignBook.dll",
+      "args": ["-u"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Launch SignBook - check",
       "type": "coreclr",
       "request": "launch",

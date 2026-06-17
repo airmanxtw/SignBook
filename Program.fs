@@ -15,6 +15,8 @@ open System.Diagnostics
 ***)
 
 let main args =
+        
+
     let infoFileName = IO.Path.Combine(AppContext.BaseDirectory, "_20260521li.enc")
 
     let parser =
@@ -26,6 +28,24 @@ let main args =
         RsaProvider.generateKeyPair ()
         |> ToolsProvider.getEncryLoginFile model
         |> ToolsProvider.saveEncryFile infoFile
+
+    //
+    let getNugetVersion() =
+        ToolsProvider.getNugetVersion' (System.IO.Path.Combine(AppContext.BaseDirectory,"appsettings.json"))
+
+    // 取得目前版本號
+    let getCurrentVersion() =
+        Reflection.Assembly.GetExecutingAssembly().GetName().Version
+        |> fun v -> $"{v.Major}.{v.Minor}.{v.Build}" 
+
+    // 顯示版本更新訊息
+    let echoVersionInfo (currentVersion:string) (latestVersion:string) =
+        if currentVersion <> latestVersion then
+            let panel = new Panel $"dotnet tool install --global SignBook --version {latestVersion}"
+            AnsiConsole.Write (panel.Header("有新版本").BorderColor(Color.Yellow).DoubleBorder())                        
+        else
+            AnsiConsole.MarkupLine $"[green]You are using the latest version: {currentVersion}[/]"
+
 
     let setPlaywrightEnvir () =
         let playwrightAssemblyDir = AppContext.BaseDirectory
@@ -62,8 +82,15 @@ let main args =
 
 
     else if results.Contains Version then
-        Reflection.Assembly.GetExecutingAssembly().GetName().Version
-        |> fun v -> printfn "SignBook version %d.%d.%d" v.Major v.Minor v.Build
+        getCurrentVersion()
+        |> fun v -> printfn "SignBook version %s" v
+
+    else if results.Contains Upgrade then
+        getNugetVersion()
+        |> function
+            | Ok(Some version) -> echoVersionInfo (getCurrentVersion()) version                               
+            | Ok None -> AnsiConsole.MarkupLine "[yellow]No version information found.[/]"
+            | Error e -> AnsiConsole.WriteException e
 
     else if results.Contains Delete then
         ToolsProvider.delEncryFile (IO.Path.Combine(AppContext.BaseDirectory, infoFileName))
@@ -124,6 +151,12 @@ let main args =
 
         sw.Stop()
         AnsiConsole.MarkupLine $"[blue]Execution time: {sw.Elapsed.TotalSeconds:F2} seconds[/]"
+
+        getNugetVersion()
+        |> function
+            | Ok(Some version) -> echoVersionInfo (getCurrentVersion()) version                               
+            | Ok None -> ()
+            | Error e -> ()
 
 
 
