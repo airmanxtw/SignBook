@@ -14,6 +14,7 @@ and CommandLineArguments =
     | [<AltCommandLine("-a")>] Auto
     | [<AltCommandLine("-r")>] ShowRecord
     | [<AltCommandLine("-v")>] Version
+    | [<AltCommandLine("-u")>] Upgrade
     | [<AltCommandLine("-d")>] Delete
     | [<AltCommandLine("-c")>] Check
     | [<AltCommandLine("-s")>] Sign
@@ -24,6 +25,7 @@ and CommandLineArguments =
             match s with   
             | Help -> "顯示幫助訊息"                     
             | Version -> "顯示版本資訊"
+            | Upgrade -> "檢查是否有新版本"
             | Delete -> "移除設定檔"
             | Check  -> "檢查是否有設定檔"
             | Auto -> "自動執行簽到（從設定檔讀取登入資訊）"
