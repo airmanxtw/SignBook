@@ -13,7 +13,14 @@ module PlaywrightProvider =
     let getPlaywrightPage () =
         let playwright = Playwright.CreateAsync().Result
         let launchOptions = BrowserTypeLaunchOptions()
-        launchOptions.Channel <- "chrome"
+        launchOptions.Headless <- true
+
+        launchOptions.Args <-
+            [| "--no-sandbox"
+               "--disable-extensions"
+               "--disable-gpu"
+               "--disable-dev-shm-usage" |]
+
         let browser = playwright.Chromium.LaunchAsync(launchOptions).Result
         browser.NewPageAsync().Result
 
@@ -31,7 +38,10 @@ module PlaywrightProvider =
         |> Async.RunSynchronously
 
         page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
-        page.WaitForLoadStateAsync(LoadState.Load) |> Async.AwaitTask |> Async.RunSynchronously
+
+        page.WaitForLoadStateAsync(LoadState.Load)
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
 
     let showMonthRecord' (page: IPage) (year: int, month: int) =
         page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync()
@@ -52,7 +62,10 @@ module PlaywrightProvider =
         |> Async.AwaitTask
         |> Async.RunSynchronously
 
-        page.Locator("center > table").Nth(1).WaitForAsync() |> Async.AwaitTask |> Async.RunSynchronously
+        page.Locator("center > table").Nth(1).WaitForAsync()
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+
         let table = Table()
         let rows = page.Locator("center > table").Nth(1).Locator "tr"
 
@@ -284,6 +297,7 @@ module PlaywrightProvider =
 
                                     page.ClickAsync $"#{selectBtn.id}" |> Async.AwaitTask |> Async.RunSynchronously
                                     page.GotoAsync(signUrl).Result |> ignore
+
                                     page.WaitForLoadStateAsync(LoadState.Load)
                                     |> Async.AwaitTask
                                     |> Async.RunSynchronously
