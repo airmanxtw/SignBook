@@ -31,14 +31,16 @@ module PlaywrightProvider =
         |> Async.RunSynchronously
 
         page.ClickAsync "#Login_Btn" |> Async.AwaitTask |> Async.RunSynchronously
-        System.Threading.Thread.Sleep 1000
+        page.WaitForLoadStateAsync(LoadState.Load) |> Async.AwaitTask |> Async.RunSynchronously
 
     let showMonthRecord' (page: IPage) (year: int, month: int) =
         page.Locator("a[href='UserSignLogMonth.aspx']").ClickAsync()
         |> Async.AwaitTask
         |> Async.RunSynchronously
 
-        System.Threading.Thread.Sleep 1000
+        page.Locator("#ctl00_ContentPlaceHolder1_ddl_year").WaitForAsync()
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
 
         page.SelectOptionAsync("#ctl00_ContentPlaceHolder1_ddl_year", year.ToString()).Result
         |> ignore
@@ -50,7 +52,7 @@ module PlaywrightProvider =
         |> Async.AwaitTask
         |> Async.RunSynchronously
 
-        System.Threading.Thread.Sleep 1000
+        page.Locator("center > table").Nth(1).WaitForAsync() |> Async.AwaitTask |> Async.RunSynchronously
         let table = Table()
         let rows = page.Locator("center > table").Nth(1).Locator "tr"
 
@@ -282,7 +284,9 @@ module PlaywrightProvider =
 
                                     page.ClickAsync $"#{selectBtn.id}" |> Async.AwaitTask |> Async.RunSynchronously
                                     page.GotoAsync(signUrl).Result |> ignore
-                                    System.Threading.Thread.Sleep 1000
+                                    page.WaitForLoadStateAsync(LoadState.Load)
+                                    |> Async.AwaitTask
+                                    |> Async.RunSynchronously
                             )
 
 
